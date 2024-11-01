@@ -1,6 +1,6 @@
-# 📅 Timelyst
+# 📅 Smart Schedule
 
-**Timelyst** is a smart calendar application that scans images to automatically identify events and add them to your calendar. Designed to simplify event management, Timelyst combines powerful image recognition with intuitive scheduling, saving you time and effort.
+**Smart Schedule** is a smart calendar application that scans images to automatically identify events and add them to your calendar. Designed to simplify event management, Timelyst combines powerful image recognition with intuitive scheduling, saving you time and effort.
 
 ## 📝 Features
 
