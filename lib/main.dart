@@ -1,0 +1,203 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+
+import 'core/identity/auth_service.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  bool firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } on UnsupportedError catch (e) {
+    debugPrint('Firebase not configured: $e');
+  }
+
+  runApp(SmartScheduleApp(firebaseReady: firebaseReady));
+}
+
+class SmartScheduleApp extends StatelessWidget {
+  const SmartScheduleApp({super.key, required this.firebaseReady});
+
+  final bool firebaseReady;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'SmartSchedule',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: firebaseReady
+          ? const _AuthGate()
+          : const _FirebaseSetupScreen(),
+    );
+  }
+}
+
+/// Shown when firebase_options.dart has not been generated.
+class _FirebaseSetupScreen extends StatelessWidget {
+  const _FirebaseSetupScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Phase I: Setup')),
+      body: const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Firebase is not configured.',
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Run in the project root:\n\n'
+                'dart pub global activate flutterfire_cli\n'
+                'flutterfire configure',
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24),
+              Text(
+                'Then add SHA-1 (Android) and Client IDs (iOS) as in docs/PHASE_I_SETUP.md',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Gate: show sign-in or home based on auth state.
+class _AuthGate extends StatelessWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = AuthService();
+    return StreamBuilder<User?>(
+      stream: auth.authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final user = snapshot.data;
+        if (user == null) {
+          return _SignInScreen(auth: auth);
+        }
+        return _SignedInScreen(auth: auth, user: user);
+      },
+    );
+  }
+}
+
+class _SignInScreen extends StatelessWidget {
+  const _SignInScreen({required this.auth});
+
+  final AuthService auth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('SmartSchedule')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Phase I: Identity',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Sign in with Google to obtain OAuth 2.0 tokens\nfor direct API access (no-backend).',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: () => auth.signInWithGoogle(),
+              icon: const Icon(Icons.login),
+              label: const Text('Sign in with Google'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SignedInScreen extends StatelessWidget {
+  const _SignedInScreen({required this.auth, required this.user});
+
+  final AuthService auth;
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('SmartSchedule'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => auth.signOut(),
+          ),
+        ],
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundImage:
+                    user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                child: user.photoURL == null
+                    ? Text(
+                        (user.displayName ?? user.email ?? '?')
+                            .substring(0, 1)
+                            .toUpperCase(),
+                        style: const TextStyle(fontSize: 32),
+                      )
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                user.displayName ?? user.email ?? 'Signed in',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Token gateway ready. Use AuthService.getIdToken() and '
+                'getAccessToken() / getOAuthTokens() for direct API calls.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
