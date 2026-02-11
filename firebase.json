@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "smartschedule-dc44f",
+          "appId": "1:853688624916:android:c91867dd3436ed021d0401",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "smartschedule-dc44f",
+          "appId": "1:853688624916:ios:1d929ae0aa49c3da1d0401",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "smartschedule-dc44f",
+          "configurations": {
+            "android": "1:853688624916:android:c91867dd3436ed021d0401",
+            "ios": "1:853688624916:ios:1d929ae0aa49c3da1d0401"
+          }
+        }
+      }
+    }
+  }
+}

@@ -14,8 +14,8 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     firebaseReady = true;
-  } on UnsupportedError catch (e) {
-    debugPrint('Firebase not configured: $e');
+  } on UnsupportedError {
+    // Firebase not configured; app shows setup screen.
   }
 
   runApp(SmartScheduleApp(firebaseReady: firebaseReady));
@@ -30,6 +30,7 @@ class SmartScheduleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SmartSchedule',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -110,10 +111,40 @@ class _AuthGate extends StatelessWidget {
   }
 }
 
-class _SignInScreen extends StatelessWidget {
+class _SignInScreen extends StatefulWidget {
   const _SignInScreen({required this.auth});
 
   final AuthService auth;
+
+  @override
+  State<_SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<_SignInScreen> {
+  bool _isSigningIn = false;
+
+  Future<void> _handleSignIn() async {
+    if (_isSigningIn) return;
+    setState(() => _isSigningIn = true);
+    try {
+      await widget.auth.signInWithGoogle();
+      if (!mounted) return;
+      // Success: auth state stream will update and show signed-in screen
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sign-in failed: ${e.toString().replaceFirst(RegExp(r'^Exception:?\s*'), '')}'),
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSigningIn = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,9 +165,15 @@ class _SignInScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
-              onPressed: () => auth.signInWithGoogle(),
-              icon: const Icon(Icons.login),
-              label: const Text('Sign in with Google'),
+              onPressed: _isSigningIn ? null : _handleSignIn,
+              icon: _isSigningIn
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.login),
+              label: Text(_isSigningIn ? 'Signing in…' : 'Sign in with Google'),
             ),
           ],
         ),

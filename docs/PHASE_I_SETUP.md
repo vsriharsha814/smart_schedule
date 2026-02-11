@@ -14,6 +14,8 @@ This document covers the one-time configuration required for **Phase I** of Smar
    flutterfire configure
    ```
 
+   If the CLI fails with `UnsupportedError not found in web`, run it again and select only **Android** and **iOS** (deselect web, windows, macos); that avoids the crash and still generates the config you need for mobile.
+
    This will:
 
    - Link the Flutter app to your Firebase project
