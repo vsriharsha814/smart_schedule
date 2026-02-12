@@ -12,6 +12,16 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+// record_android and similar plugins expect project.ext.flutter (compileSdkVersion, etc.)
+subprojects { subproject ->
+    subproject.beforeEvaluate {
+        subproject.ext.set("flutter", [
+            compileSdkVersion: 34,
+            minSdkVersion: 23,
+            targetSdkVersion: 34,
+        ])
+    }
+}
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir

@@ -37,6 +37,22 @@ dependencies:
   firebase_auth: ^5.3.4
   google_sign_in: ^6.2.2
 
+  # Phase II: Local persistence & multimodal input
+  sqflite: ^2.3.2
+  path: ^1.9.0
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.2
+  image_picker: ^1.0.7
+  # Voice recording will be added in a later phase.
+
+  # Phase III: On-device vision & OCR (ML Kit)
+  # Use a Dart 3.5-compatible version of the plugin.
+  google_mlkit_text_recognition: ^0.15.0
+
+  # Phase IV–V: NLP + Calendar
+  google_mlkit_entity_extraction: ^0.15.0
+  http: ^1.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,5 +1,8 @@
-# Firebase Auth requires iOS 13.0+
-platform :ios, '13.0'
+# Firebase Auth & ML Kit require iOS 15.5+
+platform :ios, '15.5'
+
+# Keep this in sync with platform above.
+$iOSVersion = '15.5'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -38,7 +41,18 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  # ML Kit requirement: exclude 32-bit arch and enforce iOS 15.5+.
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings["EXCLUDED_ARCHS[sdk=*]"] = "armv7"
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = $iOSVersion
+  end
+
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      if Gem::Version.new($iOSVersion) > Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'])
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = $iOSVersion
+      end
+    end
   end
 end

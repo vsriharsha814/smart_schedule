@@ -45,6 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Smart Schedule uses the camera to capture content for event drafts.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Smart Schedule uses the microphone to record voice for event drafts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Smart Schedule uses the photo library to attach images to event drafts.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

@@ -3,7 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'core/identity/auth_service.dart';
+import 'core/persistence/drafts_store.dart';
 import 'firebase_options.dart';
+import 'screens/drafts_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,7 +107,11 @@ class _AuthGate extends StatelessWidget {
         if (user == null) {
           return _SignInScreen(auth: auth);
         }
-        return _SignedInScreen(auth: auth, user: user);
+        return _SignedInScreen(
+          auth: auth,
+          user: user,
+          draftsStore: DraftsStore(),
+        );
       },
     );
   }
@@ -183,58 +189,22 @@ class _SignInScreenState extends State<_SignInScreen> {
 }
 
 class _SignedInScreen extends StatelessWidget {
-  const _SignedInScreen({required this.auth, required this.user});
+  const _SignedInScreen({
+    required this.auth,
+    required this.user,
+    required this.draftsStore,
+  });
 
   final AuthService auth;
   final User user;
+  final DraftsStore draftsStore;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SmartSchedule'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => auth.signOut(),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage:
-                    user.photoURL != null ? NetworkImage(user.photoURL!) : null,
-                child: user.photoURL == null
-                    ? Text(
-                        (user.displayName ?? user.email ?? '?')
-                            .substring(0, 1)
-                            .toUpperCase(),
-                        style: const TextStyle(fontSize: 32),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                user.displayName ?? user.email ?? 'Signed in',
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Token gateway ready. Use AuthService.getIdToken() and '
-                'getAccessToken() / getOAuthTokens() for direct API calls.',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
+    return DraftsScreen(
+      draftsStore: draftsStore,
+      auth: auth,
+      onSignOut: () => auth.signOut(),
     );
   }
 }
