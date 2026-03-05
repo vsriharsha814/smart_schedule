@@ -26,7 +26,7 @@ class MlkitIntentExtractor {
     await _ensureModel();
     final trimmed = rawText.trim();
     if (trimmed.isEmpty) {
-      return EventIntent(rawText: '');
+      return const EventIntent(rawText: '');
     }
 
     DateTime? start;
@@ -40,14 +40,12 @@ class MlkitIntentExtractor {
           case EntityType.dateTime:
             // Very naive: try to parse the raw value as ISO-like.
             final value = e.rawValue;
-            if (value != null) {
-              final parsed = DateTime.tryParse(value);
-              if (parsed != null) {
-                start ??= parsed;
-                end ??= parsed.add(const Duration(hours: 1));
-              }
+            final parsed = DateTime.tryParse(value);
+            if (parsed != null) {
+              start ??= parsed;
+              end ??= parsed.add(const Duration(hours: 1));
             }
-            break;
+                      break;
           case EntityType.address:
             location ??= e.rawValue;
             break;

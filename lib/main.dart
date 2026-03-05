@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import 'core/identity/auth_service.dart';
 import 'core/persistence/drafts_store.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'firebase_options.dart';
 import 'screens/drafts_screen.dart';
 
@@ -20,6 +22,8 @@ void main() async {
     // Firebase not configured; app shows setup screen.
   }
 
+  await ThemeController.instance.load();
+
   runApp(SmartScheduleApp(firebaseReady: firebaseReady));
 }
 
@@ -30,16 +34,20 @@ class SmartScheduleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SmartSchedule',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: firebaseReady
-          ? const _AuthGate()
-          : const _FirebaseSetupScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.instance.themeMode,
+      builder: (context, mode, _) {
+        return MaterialApp(
+          title: 'SmartSchedule',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: mode,
+          home: firebaseReady
+              ? const _AuthGate()
+              : const _FirebaseSetupScreen(),
+        );
+      },
     );
   }
 }

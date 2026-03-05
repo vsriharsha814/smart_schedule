@@ -44,6 +44,10 @@ PODS:
   - google_mlkit_commons (0.11.0):
     - Flutter
     - MLKitVision
+  - google_mlkit_entity_extraction (0.15.1):
+    - Flutter
+    - google_mlkit_commons
+    - GoogleMLKit/EntityExtraction (~> 7.0.0)
   - google_mlkit_text_recognition (0.15.0):
     - Flutter
     - google_mlkit_commons
@@ -57,6 +61,9 @@ PODS:
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
+  - GoogleMLKit/EntityExtraction (7.0.0):
+    - GoogleMLKit/MLKitCore
+    - MLKitEntityExtraction (~> 1.0.0-beta13)
   - GoogleMLKit/MLKitCore (7.0.0):
     - MLKitCommon (~> 12.0.0)
   - GoogleMLKit/TextRecognition (7.0.0):
@@ -71,6 +78,8 @@ PODS:
   - GoogleToolboxForMac/Logger (4.2.1):
     - GoogleToolboxForMac/Defines (= 4.2.1)
   - "GoogleToolboxForMac/NSData+zlib (4.2.1)":
+    - GoogleToolboxForMac/Defines (= 4.2.1)
+  - GoogleToolboxForMac/StringEncoding (4.2.1):
     - GoogleToolboxForMac/Defines (= 4.2.1)
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
@@ -114,6 +123,14 @@ PODS:
     - GoogleUtilities/Logger (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
+  - MLKitEntityExtraction (1.0.0-beta13):
+    - MLKitNaturalLanguage (~> 8.0)
+  - MLKitNaturalLanguage (8.0.0):
+    - GoogleToolboxForMac/Logger (< 5.0, >= 4.2.1)
+    - "GoogleToolboxForMac/NSData+zlib (< 5.0, >= 4.2.1)"
+    - GoogleToolboxForMac/StringEncoding (< 5.0, >= 4.2.1)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
+    - MLKitCommon (~> 12.0)
   - MLKitTextRecognition (5.0.0):
     - MLKitCommon (~> 12.0)
     - MLKitTextRecognitionCommon (= 4.0.0)
@@ -149,6 +166,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - Flutter (from `Flutter`)
   - google_mlkit_commons (from `.symlinks/plugins/google_mlkit_commons/ios`)
+  - google_mlkit_entity_extraction (from `.symlinks/plugins/google_mlkit_entity_extraction/ios`)
   - google_mlkit_text_recognition (from `.symlinks/plugins/google_mlkit_text_recognition/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -176,6 +194,8 @@ SPEC REPOS:
     - GTMSessionFetcher
     - MLImage
     - MLKitCommon
+    - MLKitEntityExtraction
+    - MLKitNaturalLanguage
     - MLKitTextRecognition
     - MLKitTextRecognitionCommon
     - MLKitVision
@@ -192,6 +212,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   google_mlkit_commons:
     :path: ".symlinks/plugins/google_mlkit_commons/ios"
+  google_mlkit_entity_extraction:
+    :path: ".symlinks/plugins/google_mlkit_entity_extraction/ios"
   google_mlkit_text_recognition:
     :path: ".symlinks/plugins/google_mlkit_text_recognition/ios"
   google_sign_in_ios:
@@ -219,6 +241,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 9afa45b1159304c963da48addb78275ef701c6b4
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   google_mlkit_commons: 2abe6a70e1824e431d16a51085cb475b672c8aab
+  google_mlkit_entity_extraction: ce8fbf0ff46c9e3686c8e8cc81b0e13c5a550096
   google_mlkit_text_recognition: ec2122ec89bfe0d7200763336a6e4ef44810674c
   google_sign_in_ios: b48bb9af78576358a168361173155596c845f0b9
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -231,6 +254,8 @@ SPEC CHECKSUMS:
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
   MLImage: 0ad1c5f50edd027672d8b26b0fee78a8b4a0fc56
   MLKitCommon: 07c2c33ae5640e5380beaaa6e4b9c249a205542d
+  MLKitEntityExtraction: 0a3cdc3498ce58aaba2ebb3479fe34a0787d3812
+  MLKitNaturalLanguage: 1faece38017b0cf8eb49ac69cff10cb419f68c01
   MLKitTextRecognition: 3b41f3ff084a79afb214408d25d2068d77ab322c
   MLKitTextRecognitionCommon: cd44577a8c506fc6bba065096de03bec0d01a213
   MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e

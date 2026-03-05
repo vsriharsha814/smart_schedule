@@ -4,12 +4,15 @@ import 'package:http/http.dart' as http;
 
 import '../identity/auth_service.dart';
 import '../nlp/event_intent.dart';
+import '../persistence/events_store.dart';
 
 /// Phase V: Direct Google Calendar integration using client-side HTTP.
 class GoogleCalendarClient {
-  GoogleCalendarClient(this._auth);
+  GoogleCalendarClient(this._auth, {EventsStore? eventsStore})
+      : _eventsStore = eventsStore ?? EventsStore();
 
   final AuthService _auth;
+  final EventsStore _eventsStore;
   static const _baseUrl = 'https://www.googleapis.com/calendar/v3';
 
   Future<void> createEvent(EventIntent intent) async {
@@ -50,6 +53,18 @@ class GoogleCalendarClient {
         'Calendar API error ${resp.statusCode}: ${resp.body}',
       );
     }
+
+    // Record locally for the Events screen.
+    await _eventsStore.insert(
+      EventRecord(
+        title: intent.title ?? 'Untitled',
+        description: intent.description ?? intent.rawText,
+        start: start,
+        end: end,
+        location: intent.location,
+        createdAt: DateTime.now(),
+      ),
+    );
   }
 }
 

@@ -5,6 +5,15 @@ allprojects {
     }
 }
 
+// Silence deprecation/unchecked notes from dependencies (e.g. google_mlkit_*)
+subprojects { subproject ->
+    subproject.afterEvaluate {
+        subproject.tasks.withType(org.gradle.api.tasks.compile.JavaCompile).configureEach { task ->
+            task.options.compilerArgs.addAll(["-Xlint:-deprecation", "-Xlint:-unchecked"])
+        }
+    }
+}
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

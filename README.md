@@ -42,4 +42,10 @@ Flutter app with phase-based development for agentic bot integration. Unified co
 
 ---
 
+## Troubleshooting
+
+- **Android: “SDK XML version 4” warning** — Caused by a version mismatch between Android Studio and the command-line SDK tools. Update the Android SDK Command-line Tools: Android Studio → **SDK Manager** → **SDK Tools** → enable **Android SDK Command-line Tools (latest)** → Apply. Or from terminal: `sdkmanager --update` (using the SDK that Android Studio uses).
+
+---
+
 *Upcoming phases will add calendar integration and higher-level agentic flows.*

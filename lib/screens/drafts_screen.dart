@@ -7,6 +7,8 @@ import '../core/nlp/mlkit_intent_extractor.dart';
 import '../core/calendar/google_calendar_client.dart';
 import 'add_draft_screen.dart';
 import 'confirm_event_screen.dart';
+import 'events_screen.dart';
+import 'settings_screen.dart';
 
 /// Phase II: List of locally persisted event drafts + FAB for multimodal input.
 class DraftsScreen extends StatefulWidget {
@@ -103,6 +105,24 @@ class _DraftsScreenState extends State<DraftsScreen> {
       appBar: AppBar(
         title: const Text('Smart Schedule'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.event_note),
+            tooltip: 'View created events',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const EventsScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: widget.onSignOut,

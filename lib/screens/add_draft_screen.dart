@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/persistence/drafts_store.dart';
@@ -53,11 +54,29 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.camera);
     if (file == null || !mounted) return;
-    setState(() => _attachmentPath = file.path);
+
+    // Let user crop the captured image before we store & OCR it.
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: file.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop image',
+          toolbarColor: Theme.of(context).colorScheme.surface,
+          toolbarWidgetColor: Theme.of(context).colorScheme.primary,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: 'Crop image',
+        ),
+      ],
+    );
+
+    final pathToUse = cropped?.path ?? file.path;
+    setState(() => _attachmentPath = pathToUse);
 
     // Phase III: run on-device OCR and let the user review/edit the result.
-    final extracted =
-        await MlkitTextExtractor.instance.extractTextFromImageFile(File(file.path));
+    final extracted = await MlkitTextExtractor.instance
+        .extractTextFromImageFile(File(pathToUse));
     if (!mounted || extracted == null || extracted.isEmpty) return;
 
     final reviewed = await _reviewExtractedText(extracted);
