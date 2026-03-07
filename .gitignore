@@ -1,4 +1,5 @@
 # Miscellaneous
+.venv-icon/
 *.class
 *.log
 *.pyc
