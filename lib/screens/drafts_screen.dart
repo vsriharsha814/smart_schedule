@@ -57,6 +57,18 @@ class _DraftsScreenState extends State<DraftsScreen> {
     if (created != null && mounted) _load();
   }
 
+  Future<void> _editDraft(EventDraft draft) async {
+    final updated = await Navigator.of(context).push<EventDraft?>(
+      MaterialPageRoute(
+        builder: (context) => AddDraftScreen(
+          draftsStore: widget.draftsStore,
+          existingDraft: draft,
+        ),
+      ),
+    );
+    if (updated != null && mounted) _load();
+  }
+
   Future<void> _deleteDraft(EventDraft draft) async {
     if (draft.id == null) return;
     await widget.draftsStore.delete(draft.id!);
@@ -158,6 +170,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                     itemBuilder: (context, index) {
                       final d = _drafts[index];
                       return ListTile(
+                        onTap: () => _editDraft(d),
                         leading: CircleAvatar(
                           child: Icon(_iconFor(d.source)),
                         ),

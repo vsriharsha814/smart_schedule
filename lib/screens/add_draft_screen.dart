@@ -7,24 +7,39 @@ import 'package:image_picker/image_picker.dart';
 import '../core/persistence/drafts_store.dart';
 import '../core/persistence/event_draft.dart';
 import '../core/vision/mlkit_text_extractor.dart';
+import 'camera_capture_screen.dart';
 
 /// Phase II–III: Multimodal input — manual, camera, and on-device OCR (ML Kit).
+/// Pass [existingDraft] to edit an existing draft instead of creating a new one.
 class AddDraftScreen extends StatefulWidget {
-  const AddDraftScreen({super.key, required this.draftsStore});
+  const AddDraftScreen({super.key, required this.draftsStore, this.existingDraft});
 
   final DraftsStore draftsStore;
+  final EventDraft? existingDraft;
 
   @override
   State<AddDraftScreen> createState() => _AddDraftScreenState();
 }
 
 class _AddDraftScreenState extends State<AddDraftScreen> {
-  final _titleController = TextEditingController();
-  final _bodyController = TextEditingController();
+  late final TextEditingController _titleController;
+  late final TextEditingController _bodyController;
   String? _attachmentPath;
   DraftSource? _source;
   bool _saving = false;
   String? _error;
+
+  bool get _isEditing => widget.existingDraft != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final draft = widget.existingDraft;
+    _titleController = TextEditingController(text: draft?.title ?? '');
+    _bodyController = TextEditingController(text: draft?.body ?? '');
+    _attachmentPath = draft?.attachmentPath;
+    _source = draft?.source ?? DraftSource.manual;
+  }
 
   @override
   void dispose() {
@@ -42,7 +57,7 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
       case DraftSource.manual:
         break;
       case DraftSource.camera:
-        await _captureImage();
+        await _captureWithCamera();
         break;
       case DraftSource.voice:
         _showVoiceUnavailable();
@@ -50,14 +65,26 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     }
   }
 
-  Future<void> _captureImage() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.camera);
-    if (file == null || !mounted) return;
+  Future<void> _captureWithCamera() async {
+    final path = await Navigator.of(context).push<String?>(
+      MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
+    );
+    if (path == null || !mounted) return;
+    await _processImage(path);
+  }
 
-    // Let user crop the captured image before we store & OCR it.
+  Future<void> _uploadImage() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null || !mounted) return;
+    await _processImage(file.path);
+  }
+
+  Future<void> _processImage(String imagePath) async {
+
+    // Let user crop the image before we store & OCR it.
     final cropped = await ImageCropper().cropImage(
-      sourcePath: file.path,
+      sourcePath: imagePath,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop image',
@@ -71,7 +98,7 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
       ],
     );
 
-    final pathToUse = cropped?.path ?? file.path;
+    final pathToUse = cropped?.path ?? imagePath;
     setState(() => _attachmentPath = pathToUse);
 
     // Phase III: run on-device OCR and let the user review/edit the result.
@@ -137,14 +164,29 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
   Future<void> _save() async {
     final source = _source ?? DraftSource.manual;
     setState(() => _saving = true);
-    final draft = EventDraft(
-      source: source,
-      title: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
-      body: _bodyController.text.trim().isEmpty ? null : _bodyController.text.trim(),
-      attachmentPath: _attachmentPath,
-      createdAt: DateTime.now(),
-    );
-    await widget.draftsStore.insert(draft);
+    final title = _titleController.text.trim().isEmpty ? null : _titleController.text.trim();
+    final body = _bodyController.text.trim().isEmpty ? null : _bodyController.text.trim();
+
+    EventDraft draft;
+    if (_isEditing) {
+      draft = widget.existingDraft!.copyWith(
+        source: source,
+        title: title,
+        body: body,
+        attachmentPath: _attachmentPath,
+        updatedAt: DateTime.now(),
+      );
+      await widget.draftsStore.update(draft);
+    } else {
+      draft = EventDraft(
+        source: source,
+        title: title,
+        body: body,
+        attachmentPath: _attachmentPath,
+        createdAt: DateTime.now(),
+      );
+      await widget.draftsStore.insert(draft);
+    }
     if (!mounted) return;
     Navigator.of(context).pop(draft);
   }
@@ -154,13 +196,12 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     final source = _source;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New draft'),
+        title: Text(_isEditing ? 'Edit draft' : 'New draft'),
         actions: [
-          if (source != null)
-            TextButton(
-              onPressed: _saving ? null : _save,
-              child: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
-            ),
+          TextButton(
+            onPressed: _saving ? null : _save,
+            child: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -174,7 +215,9 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
             ],
             const Text('Add input via:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 _SourceChip(
                   label: 'Type',
@@ -182,14 +225,18 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
                   selected: source == DraftSource.manual,
                   onTap: () => _chooseSource(DraftSource.manual),
                 ),
-                const SizedBox(width: 8),
                 _SourceChip(
                   label: 'Camera',
                   icon: Icons.camera_alt,
                   selected: source == DraftSource.camera,
                   onTap: () => _chooseSource(DraftSource.camera),
                 ),
-                const SizedBox(width: 8),
+                _SourceChip(
+                  label: 'Upload',
+                  icon: Icons.photo_library,
+                  selected: false,
+                  onTap: _uploadImage,
+                ),
                 _SourceChip(
                   label: 'Voice',
                   icon: Icons.mic,
