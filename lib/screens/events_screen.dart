@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../core/persistence/events_store.dart';
 
@@ -80,7 +81,7 @@ class _EventsScreenState extends State<EventsScreen> {
                             children: [
                               const SizedBox(height: 4),
                               Text(
-                                '${e.start} – ${e.end}',
+                                '${_formatDt(e.start)} – ${_formatDt(e.end)}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -116,5 +117,9 @@ class _EventsScreenState extends State<EventsScreen> {
                 ),
     );
   }
+
+  static final _dtFormat = DateFormat('MMM d, y h:mm a');
+
+  String _formatDt(DateTime dt) => _dtFormat.format(dt.toLocal());
 }
 

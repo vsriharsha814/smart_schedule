@@ -38,14 +38,20 @@ class MlkitIntentExtractor {
       for (final e in a.entities) {
         switch (e.type) {
           case EntityType.dateTime:
-            // Very naive: try to parse the raw value as ISO-like.
             final value = e.rawValue;
-            final parsed = DateTime.tryParse(value);
+            // ML Kit may return millis-since-epoch or an ISO string.
+            final millis = int.tryParse(value);
+            DateTime? parsed;
+            if (millis != null) {
+              parsed = DateTime.fromMillisecondsSinceEpoch(millis);
+            } else {
+              parsed = DateTime.tryParse(value);
+            }
             if (parsed != null) {
               start ??= parsed;
               end ??= parsed.add(const Duration(hours: 1));
             }
-                      break;
+            break;
           case EntityType.address:
             location ??= e.rawValue;
             break;

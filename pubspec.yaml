@@ -55,7 +55,6 @@ dependencies:
 
   # Image editing
   image_cropper: ^6.0.0
-  camera: ^0.11.0+2
 
 dev_dependencies:
   flutter_test:

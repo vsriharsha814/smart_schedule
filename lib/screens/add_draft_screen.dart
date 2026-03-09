@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import '../core/persistence/drafts_store.dart';
 import '../core/persistence/event_draft.dart';
 import '../core/vision/mlkit_text_extractor.dart';
-import 'camera_capture_screen.dart';
 
 /// Phase II–III: Multimodal input — manual, camera, and on-device OCR (ML Kit).
 /// Pass [existingDraft] to edit an existing draft instead of creating a new one.
@@ -66,18 +65,34 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
   }
 
   Future<void> _captureWithCamera() async {
-    final path = await Navigator.of(context).push<String?>(
-      MaterialPageRoute(builder: (_) => const CameraCaptureScreen()),
-    );
-    if (path == null || !mounted) return;
-    await _processImage(path);
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.rear,
+      );
+      if (file == null || !mounted) return;
+      await _processImage(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Camera error: $e')),
+      );
+    }
   }
 
   Future<void> _uploadImage() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery);
-    if (file == null || !mounted) return;
-    await _processImage(file.path);
+    try {
+      final picker = ImagePicker();
+      final file = await picker.pickImage(source: ImageSource.gallery);
+      if (file == null || !mounted) return;
+      await _processImage(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gallery error: $e')),
+      );
+    }
   }
 
   Future<void> _processImage(String imagePath) async {

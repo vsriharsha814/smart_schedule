@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/persistence/drafts_store.dart';
 import '../core/persistence/event_draft.dart';
 import '../core/identity/auth_service.dart';
+import '../core/nlp/event_intent.dart';
 import '../core/nlp/mlkit_intent_extractor.dart';
 import '../core/calendar/google_calendar_client.dart';
 import 'add_draft_screen.dart';
@@ -92,8 +93,27 @@ class _DraftsScreenState extends State<DraftsScreen> {
       return;
     }
 
-    final intent = await MlkitIntentExtractor.instance.extract(rawText);
+    // Show loading while ML Kit downloads model & extracts entities.
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    EventIntent intent;
+    try {
+      intent = await MlkitIntentExtractor.instance.extract(rawText);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // dismiss loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Extraction failed: $e')),
+      );
+      return;
+    }
+
     if (!mounted) return;
+    Navigator.of(context).pop(); // dismiss loading
 
     final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
