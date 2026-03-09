@@ -18,8 +18,9 @@ class DraftsStore {
     final dir = await getApplicationDocumentsDirectory();
     _db = await openDatabase(
       join(dir.path, _dbName),
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     return _db!;
   }
@@ -32,10 +33,21 @@ class DraftsStore {
         title TEXT,
         body TEXT,
         attachment_path TEXT,
+        location TEXT,
+        start_at INTEGER,
+        end_at INTEGER,
         created_at INTEGER NOT NULL,
         updated_at INTEGER
       )
     ''');
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE $_table ADD COLUMN location TEXT');
+      await db.execute('ALTER TABLE $_table ADD COLUMN start_at INTEGER');
+      await db.execute('ALTER TABLE $_table ADD COLUMN end_at INTEGER');
+    }
   }
 
   Future<int> insert(EventDraft draft) async {
@@ -88,6 +100,9 @@ class DraftsStore {
       'title': d.title,
       'body': d.body,
       'attachment_path': d.attachmentPath,
+      'location': d.location,
+      'start_at': d.startAt?.millisecondsSinceEpoch,
+      'end_at': d.endAt?.millisecondsSinceEpoch,
       'created_at': d.createdAt.millisecondsSinceEpoch,
       'updated_at': d.updatedAt?.millisecondsSinceEpoch,
     };
@@ -100,6 +115,13 @@ class DraftsStore {
       title: m['title'] as String?,
       body: m['body'] as String?,
       attachmentPath: m['attachment_path'] as String?,
+      location: m['location'] as String?,
+      startAt: m['start_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(m['start_at'] as int)
+          : null,
+      endAt: m['end_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(m['end_at'] as int)
+          : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(m['created_at'] as int),
       updatedAt: m['updated_at'] != null
           ? DateTime.fromMillisecondsSinceEpoch(m['updated_at'] as int)

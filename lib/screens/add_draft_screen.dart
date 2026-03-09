@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 import '../core/persistence/drafts_store.dart';
 import '../core/persistence/event_draft.dart';
@@ -23,12 +24,18 @@ class AddDraftScreen extends StatefulWidget {
 class _AddDraftScreenState extends State<AddDraftScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
+  late final TextEditingController _locationController;
   String? _attachmentPath;
   DraftSource? _source;
+  DateTime? _startAt;
+  DateTime? _endAt;
   bool _saving = false;
   String? _error;
 
   bool get _isEditing => widget.existingDraft != null;
+
+  static final _dateFormat = DateFormat('EEEE, MMMM d');
+  static final _timeFormat = DateFormat('h:mm a');
 
   @override
   void initState() {
@@ -36,14 +43,18 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     final draft = widget.existingDraft;
     _titleController = TextEditingController(text: draft?.title ?? '');
     _bodyController = TextEditingController(text: draft?.body ?? '');
+    _locationController = TextEditingController(text: draft?.location ?? '');
     _attachmentPath = draft?.attachmentPath;
     _source = draft?.source ?? DraftSource.manual;
+    _startAt = draft?.startAt;
+    _endAt = draft?.endAt;
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _bodyController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -164,11 +175,48 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     return result;
   }
 
+  Future<void> _pickDateTime({required bool isStart}) async {
+    final current = isStart ? _startAt : _endAt;
+    final now = DateTime.now();
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: current ?? now,
+      firstDate: now.subtract(const Duration(days: 1)),
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(current ?? now),
+    );
+    if (pickedTime == null || !mounted) return;
+    final combined = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+    setState(() {
+      if (isStart) {
+        _startAt = combined;
+        if (_endAt == null || _endAt!.isBefore(combined)) {
+          _endAt = combined.add(const Duration(hours: 1));
+        }
+      } else {
+        _endAt = combined.isAfter(_startAt ?? now)
+            ? combined
+            : (_startAt ?? now).add(const Duration(hours: 1));
+      }
+    });
+  }
+
   Future<void> _save() async {
     final source = _source ?? DraftSource.manual;
     setState(() => _saving = true);
     final title = _titleController.text.trim().isEmpty ? null : _titleController.text.trim();
     final body = _bodyController.text.trim().isEmpty ? null : _bodyController.text.trim();
+    final location = _locationController.text.trim().isEmpty ? null : _locationController.text.trim();
 
     EventDraft draft;
     if (_isEditing) {
@@ -177,6 +225,9 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
         title: title,
         body: body,
         attachmentPath: _attachmentPath,
+        location: location,
+        startAt: _startAt,
+        endAt: _endAt,
         updatedAt: DateTime.now(),
       );
       await widget.draftsStore.update(draft);
@@ -186,6 +237,9 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
         title: title,
         body: body,
         attachmentPath: _attachmentPath,
+        location: location,
+        startAt: _startAt,
+        endAt: _endAt,
         createdAt: DateTime.now(),
       );
       await widget.draftsStore.insert(draft);
@@ -196,79 +250,214 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final source = _source;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final now = DateTime.now();
+    final startDisplay = _startAt ?? now;
+    final endDisplay = _endAt ?? startDisplay.add(const Duration(hours: 1));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit draft' : 'New draft'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(_isEditing ? 'Edit event' : 'New event'),
         actions: [
-          TextButton(
-            onPressed: _saving ? null : _save,
-            child: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: FilledButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Save'),
+            ),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_error != null) ...[
-              Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              const SizedBox(height: 16),
-            ],
-            const Text('Add input via:', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _SourceChip(
-                  label: 'Type',
-                  icon: Icons.text_fields,
-                  selected: source == DraftSource.manual,
-                  onTap: () => _chooseSource(DraftSource.manual),
-                ),
-                _SourceChip(
-                  label: 'Camera',
-                  icon: Icons.camera_alt,
-                  selected: source == DraftSource.camera,
-                  onTap: () => _chooseSource(DraftSource.camera),
-                ),
-                _SourceChip(
-                  label: 'Upload',
-                  icon: Icons.photo_library,
-                  selected: false,
-                  onTap: _uploadImage,
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
-                hintText: 'Optional',
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: Text(_error!, style: TextStyle(color: colorScheme.error)),
               ),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _bodyController,
-              decoration: const InputDecoration(
-                labelText: 'Notes / description',
-                border: OutlineInputBorder(),
-                hintText: 'Optional',
+
+            // ── Title ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              child: TextField(
+                controller: _titleController,
+                style: theme.textTheme.headlineSmall,
+                decoration: InputDecoration(
+                  hintText: 'Add title',
+                  hintStyle: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+                  border: InputBorder.none,
+                ),
+                onChanged: (_) => setState(() {}),
               ),
-              maxLines: 4,
-              onChanged: (_) => setState(() {}),
             ),
-            if (_attachmentPath != null) ...[
-              const SizedBox(height: 16),
-              const Text('Attachment', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              _AttachmentPreview(path: _attachmentPath!),
-            ],
+            const Divider(height: 1),
+
+            // ── Input source (Camera / Upload) ──
+            _SectionTile(
+              icon: Icons.attach_file,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 4),
+                    child: Text('Add input via', style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.camera_alt, size: 18),
+                        label: const Text('Camera'),
+                        onPressed: () => _chooseSource(DraftSource.camera),
+                      ),
+                      ActionChip(
+                        avatar: const Icon(Icons.photo_library, size: 18),
+                        label: const Text('Upload'),
+                        onPressed: _uploadImage,
+                      ),
+                    ],
+                  ),
+                  if (_attachmentPath != null) ...[
+                    const SizedBox(height: 12),
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(_attachmentPath!),
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: IconButton.filled(
+                            style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                            icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                            onPressed: () => setState(() => _attachmentPath = null),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+            const Divider(height: 1, indent: 56),
+
+            // ── Date & Time ──
+            _SectionTile(
+              icon: Icons.access_time,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () => _pickDateTime(isStart: true),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            _dateFormat.format(startDisplay),
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          Text(
+                            '${_timeFormat.format(startDisplay)}  –  ${_timeFormat.format(endDisplay)}',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_startAt != null || _endAt != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Does not repeat',
+                            style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                          const SizedBox(width: 8),
+                          InkWell(
+                            onTap: () => setState(() {
+                              _startAt = null;
+                              _endAt = null;
+                            }),
+                            child: Text(
+                              'Clear',
+                              style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.primary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        'Tap to set date & time',
+                        style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, indent: 56),
+
+            // ── Location ──
+            _SectionTile(
+              icon: Icons.location_on_outlined,
+              child: TextField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  hintText: 'Add location',
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  hintStyle: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+                ),
+                style: theme.textTheme.bodyLarge,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const Divider(height: 1, indent: 56),
+
+            // ── Description ──
+            _SectionTile(
+              icon: Icons.notes,
+              child: TextField(
+                controller: _bodyController,
+                decoration: InputDecoration(
+                  hintText: 'Add description',
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  hintStyle: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+                ),
+                style: theme.textTheme.bodyLarge,
+                maxLines: 4,
+                minLines: 1,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
           ],
         ),
       ),
@@ -276,42 +465,26 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
   }
 }
 
-class _SourceChip extends StatelessWidget {
-  const _SourceChip({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
+class _SectionTile extends StatelessWidget {
+  const _SectionTile({required this.icon, required this.child});
 
-  final String label;
   final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [Icon(icon, size: 18), const SizedBox(width: 4), Text(label)],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 12, right: 16),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+          Expanded(child: child),
+        ],
       ),
-      selected: selected,
-      onSelected: (_) => onTap(),
-    );
-  }
-}
-
-class _AttachmentPreview extends StatelessWidget {
-  const _AttachmentPreview({required this.path});
-
-  final String path;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.file(File(path), height: 120, width: double.infinity, fit: BoxFit.cover),
     );
   }
 }

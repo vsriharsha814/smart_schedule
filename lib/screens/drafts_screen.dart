@@ -115,6 +115,14 @@ class _DraftsScreenState extends State<DraftsScreen> {
     if (!mounted) return;
     Navigator.of(context).pop(); // dismiss loading
 
+    // Merge any manually-entered fields from the draft into the extracted intent.
+    intent = intent.copyWith(
+      title: intent.title ?? draft.title,
+      location: intent.location ?? draft.location,
+      start: draft.startAt ?? intent.start,
+      end: draft.endAt ?? intent.end,
+    );
+
     final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (context) => ConfirmEventScreen(

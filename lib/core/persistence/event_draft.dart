@@ -9,6 +9,9 @@ class EventDraft {
     this.title,
     this.body,
     this.attachmentPath,
+    this.location,
+    this.startAt,
+    this.endAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -19,6 +22,9 @@ class EventDraft {
   final String? body;
   /// Local file path for camera image.
   final String? attachmentPath;
+  final String? location;
+  final DateTime? startAt;
+  final DateTime? endAt;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -28,6 +34,9 @@ class EventDraft {
     String? title,
     String? body,
     String? attachmentPath,
+    String? location,
+    DateTime? startAt,
+    DateTime? endAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -37,6 +46,9 @@ class EventDraft {
       title: title ?? this.title,
       body: body ?? this.body,
       attachmentPath: attachmentPath ?? this.attachmentPath,
+      location: location ?? this.location,
+      startAt: startAt ?? this.startAt,
+      endAt: endAt ?? this.endAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
