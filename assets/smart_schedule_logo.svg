@@ -1,0 +1,46 @@
+<svg width="500" height="500" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(18, 18)">
+    
+    <g transform="translate(75, 56) scale(1.25)">
+      <circle r="23" fill="#1b2129" />
+      
+      <g fill="#1b2129">
+        <rect x="-5" y="-30" width="10" height="12" rx="1.5" />
+        <rect x="-5" y="18" width="10" height="12" rx="1.5" />
+        <rect x="18" y="-5" width="12" height="10" rx="1.5" />
+        <rect x="-30" y="-5" width="12" height="10" rx="1.5" />
+        
+        <rect x="-5" y="-30" width="10" height="12" rx="1.5" transform="rotate(45)" />
+        <rect x="-5" y="-30" width="10" height="12" rx="1.5" transform="rotate(135)" />
+        <rect x="-5" y="-30" width="10" height="12" rx="1.5" transform="rotate(225)" />
+        <rect x="-5" y="-30" width="10" height="12" rx="1.5" transform="rotate(315)" />
+      </g>
+
+      <circle r="16" fill="white" stroke="#1b2129" stroke-width="1.5" />
+    </g>
+
+    <rect x="10" y="24" width="55" height="48" rx="6" fill="#1b2129"/>
+    <rect x="13.5" y="38" width="48" height="30.5" rx="2" fill="#ffffff"/>
+    
+    <path d="M10,30 Q10,24 16,24 L59,24 Q65,24 65,30 L65,38 L10,38 Z" fill="#3b52a1"/>
+    
+    <rect x="21" y="17" width="5" height="12" rx="2.5" fill="#3b52a1"/>
+    <rect x="49" y="17" width="5" height="12" rx="2.5" fill="#3b52a1"/>
+
+    <g fill="#3b52a1">
+      <rect x="33.5" y="41" width="7" height="7" rx="0.5"/>
+      <rect x="42.5" y="41" width="7" height="7" rx="0.5"/>
+      <rect x="51.5" y="41" width="7" height="7" rx="0.5"/>
+      <rect x="24.5" y="50" width="7" height="7" rx="0.5"/>
+      <rect x="33.5" y="50" width="7" height="7" rx="0.5"/>
+      <rect x="42.5" y="50" width="7" height="7" rx="0.5"/>
+      <rect x="51.5" y="50" width="7" height="7" rx="0.5"/>
+      <rect x="15.5" y="59" width="7" height="7" rx="0.5"/>
+      <rect x="24.5" y="59" width="7" height="7" rx="0.5"/>
+      <rect x="33.5" y="59" width="7" height="7" rx="0.5"/>
+      <rect x="42.5" y="59" width="7" height="7" rx="0.5"/>
+    </g>
+
+    <path d="M82,45 L70,56 L82,67" fill="none" stroke="#3b52a1" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
