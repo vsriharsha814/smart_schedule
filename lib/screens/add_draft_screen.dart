@@ -58,9 +58,6 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
       case DraftSource.camera:
         await _captureWithCamera();
         break;
-      case DraftSource.voice:
-        _showVoiceUnavailable();
-        break;
     }
   }
 
@@ -167,15 +164,6 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
     return result;
   }
 
-  void _showVoiceUnavailable() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Voice recording will be added in a later phase.'),
-      ),
-    );
-  }
-
   Future<void> _save() async {
     final source = _source ?? DraftSource.manual;
     setState(() => _saving = true);
@@ -252,12 +240,6 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
                   selected: false,
                   onTap: _uploadImage,
                 ),
-                _SourceChip(
-                  label: 'Voice',
-                  icon: Icons.mic,
-                  selected: source == DraftSource.voice,
-                  onTap: () => _chooseSource(DraftSource.voice),
-                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -327,13 +309,6 @@ class _AttachmentPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (path.toLowerCase().endsWith('.m4a') || path.toLowerCase().endsWith('.aac')) {
-      return ListTile(
-        leading: const Icon(Icons.audiotrack),
-        title: const Text('Voice recording'),
-        subtitle: Text(path.split('/').last),
-      );
-    }
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.file(File(path), height: 120, width: double.infinity, fit: BoxFit.cover),

@@ -1,6 +1,6 @@
 /// Phase II: Pending event draft for local persistence.
 /// Survives process interruption (e.g. during NLP extraction).
-enum DraftSource { manual, camera, voice }
+enum DraftSource { manual, camera }
 
 class EventDraft {
   const EventDraft({
@@ -17,7 +17,7 @@ class EventDraft {
   final DraftSource source;
   final String? title;
   final String? body;
-  /// Local file path for camera image or voice recording.
+  /// Local file path for camera image.
   final String? attachmentPath;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -46,8 +46,6 @@ class EventDraft {
     switch (s) {
       case 'camera':
         return DraftSource.camera;
-      case 'voice':
-        return DraftSource.voice;
       default:
         return DraftSource.manual;
     }
@@ -57,8 +55,6 @@ class EventDraft {
     switch (s) {
       case DraftSource.camera:
         return 'camera';
-      case DraftSource.voice:
-        return 'voice';
       case DraftSource.manual:
         return 'manual';
     }

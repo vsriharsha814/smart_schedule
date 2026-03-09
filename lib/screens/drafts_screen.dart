@@ -232,8 +232,6 @@ class _DraftsScreenState extends State<DraftsScreen> {
         return Icons.text_fields;
       case DraftSource.camera:
         return Icons.camera_alt;
-      case DraftSource.voice:
-        return Icons.mic;
     }
   }
 }
