@@ -285,22 +285,6 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
                 child: Text(_error!, style: TextStyle(color: colorScheme.error)),
               ),
 
-            // ── Title ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-              child: TextField(
-                controller: _titleController,
-                style: theme.textTheme.headlineSmall,
-                decoration: InputDecoration(
-                  hintText: 'Add title',
-                  hintStyle: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
-                  border: InputBorder.none,
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-            const Divider(height: 1),
-
             // ── Input source (Camera / Upload) ──
             _SectionTile(
               icon: Icons.attach_file,
@@ -357,6 +341,22 @@ class _AddDraftScreenState extends State<AddDraftScreen> {
               ),
             ),
             const Divider(height: 1, indent: 56),
+
+            // ── Title ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: TextField(
+                controller: _titleController,
+                style: theme.textTheme.headlineSmall,
+                decoration: InputDecoration(
+                  hintText: 'Add title',
+                  hintStyle: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface.withOpacity(0.5)),
+                  border: InputBorder.none,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const Divider(height: 1),
 
             // ── Date & Time ──
             _SectionTile(
