@@ -168,14 +168,17 @@ class _SignInScreenState extends State<_SignInScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Phase I: Identity',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              'SmartSchedule',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Sign in with Google to obtain OAuth 2.0 tokens\nfor direct API access (no-backend).',
+            Text(
+              'Sign in to manage your calendar events.',
               textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 32),
             FilledButton.icon(
